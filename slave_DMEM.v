@@ -118,9 +118,9 @@ module slave_DMEM (
 		altsyncram_component.clock_enable_output_b = "BYPASS",
 		altsyncram_component.indata_reg_b = "CLOCK0",
 `ifdef NO_PLI
-		altsyncram_component.init_file = "../TLUL upload/mem_64KB_zero.rif"
+		altsyncram_component.init_file = "/home/yellow/pnmuy/default_file/mem_64KB_zero.rif"
 `else
-		altsyncram_component.init_file = "mem_64KB_zero.hex"
+		altsyncram_component.init_file = "/home/yellow/pnmuy/default_file/mem_64KB_zero.hex"
 `endif
 ,
 		altsyncram_component.intended_device_family = "Cyclone V",

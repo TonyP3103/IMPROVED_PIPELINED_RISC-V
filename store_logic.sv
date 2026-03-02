@@ -1,3 +1,89 @@
+module store_logic (
+    input  logic [31:0] i_data,
+    input  logic [6:0] opcode,
+    input  logic [2:0] funct3,
+    input  logic [1:0] addr_lsb,   // addr[1:0]
+    output logic [3:0] byteena,
+    output logic [31:0] o_data
+);
+
+localparam STORE = 7'b0100011;
+
+always_comb begin
+    if (opcode == STORE) begin
+        case (funct3)
+
+            // SW
+            3'b010: byteena = 4'b1111;
+
+            // SH
+            3'b001: begin
+                case (addr_lsb)
+                    2'b00: byteena = 4'b0011;
+                    2'b01: byteena = 4'b0110;
+                    2'b10: byteena = 4'b1100;
+                    2'b11: byteena = 4'b1000;
+                endcase
+            end
+
+            // SB
+            3'b000: begin
+                case (addr_lsb)
+                    2'b00: byteena = 4'b0001;
+                    2'b01: byteena = 4'b0010;
+                    2'b10: byteena = 4'b0100;
+                    2'b11: byteena = 4'b1000;
+                endcase
+            end
+
+            default: byteena = 4'b0000;
+        endcase
+    end else begin
+            byteena = 4'd0;
+    end 
+end
+
+
+/////////////////////////DATA HANDLE/////////////////////////
+
+always_comb begin
+    if (opcode == STORE) begin
+        case (funct3)
+
+            // SW
+            3'b010: o_data = i_data;
+
+            // SH
+            3'b001: begin
+                case (addr_lsb)
+                    2'b00: o_data = {16'd0,i_data[15:0]};
+                    2'b01: o_data = {8'd0,i_data[15:0],8'd0};
+                    2'b10: o_data = {i_data[15:0],16'd0};
+                    2'b11: o_data = {i_data[7:0],24'd0};
+                endcase
+            end
+
+            // SB
+            3'b000: begin
+                case (addr_lsb)
+                    2'b00: o_data = {24'd0,i_data[7:0]};
+                    2'b01: o_data = {16'd0,i_data[7:0],8'd0};
+                    2'b10: o_data = {8'd0,i_data[7:0],16'd0};
+                    2'b11: o_data = {i_data[7:0],24'd0};
+                endcase
+            end
+
+            default: o_data = 32'd0;
+        endcase
+    end else begin
+            o_data = 32'd0;
+    end
+end
+
+endmodule
+
+
+/*
 //the store logic takes 2 continous mem and store them back at the next clk
 module store_logic (
 input logic [1:0] i_address,                  //last 2 bits for byte offset within word   
@@ -140,4 +226,4 @@ end
     assign o_data_0 = temp_data_2;
     assign o_data_1 = temp_data_3;
 
-endmodule 
+endmodule */

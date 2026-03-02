@@ -12,7 +12,7 @@ module EX_reg (
     output logic [31:0] o_instr_EX,
     output logic        o_RegWen_EX,
     output logic [ 1:0] o_wb_select_EX,
-    output logic        o_ALU_EX
+    output logic [31:0] o_ALU_EX
     );
 
     always_ff @(posedge clk or negedge rstn) begin

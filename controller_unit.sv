@@ -124,7 +124,7 @@ end
         Asel = 1'b0;
         Bsel = 1'b1;
         MemRW = 1'b0;
-        wb_select = 2'b11; // From B
+        wb_select = 2'b01; // From ALU
         end
 
     default: begin

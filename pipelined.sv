@@ -67,7 +67,7 @@ logic [ 1:0] o_wb_select_EX;
 logic [31:0] data_A;
 logic [31:0] data_B;
 logic [31:0] LSU_DATA;
-
+logic        LUI_type;
 
 ///////////////MEMORY LOGIC////////////////
 logic       stall_2_MEM;
@@ -77,7 +77,7 @@ logic [31:0] o_instr_EX;
 logic [31:0] wb_select_MEM;
 logic [31:0] i_wb_data_MEM;
 logic [31:0] o_wb_data_MEM;
-
+logic        o_RegWen_MEM;
 ///////////////WRITEBACK LOGIC////////////////
 logic       stall_2_WB;
 logic       flush_2_WB;
@@ -87,9 +87,16 @@ logic [31:0]  wb_data_WB;
 
 
 
-
+//assign flush_2_ID = 1'b0;
+//assign flush_2_EX = 1'b0;
+//assign flush_2_MEM= 1'b0;
+//assign flush_2_WB = 1'b0;
+//assign stall_2_ID = 1'b0;
+//assign stall_2_EX = 1'b0;
+//assign stall_2_MEM= 1'b0;
+//assign stall_2_WB = 1'b0;
 PC PC_INST (
-    .i_pc(i_pc_IF),
+    .i_pc(PC),
     .o_pc(i_pc_FF)
     );
 
@@ -100,7 +107,7 @@ always_ff @(posedge i_clk or negedge i_reset) begin
 end else begin
     o_pc_FF <= i_pc_FF;
 end
-
+end
 //////////////// MUX PC ////////////////////////////
 assign PC = PCsel ? i_ALU_EX : o_pc_FF;
 
@@ -115,7 +122,7 @@ end else begin
 end
 end
 
-imem #(.MEM_FILE (" "))
+imem #(.MEM_FILE ("/home/yellow/pnmuy/default_file/load_store.hex"))
 IMEM (
     .address(PC[12:2]),
     .clock(i_clk),
@@ -173,7 +180,7 @@ imm_gen IMM_GEN (
 
 
 controller_unit CONTROLLER (
-    .instr_data(o_intr_ID),
+    .instr_data(o_instr_ID),
     .RegWen(i_RegWen_EX),
     .Asel(Asel),
     .Bsel(Bsel),
@@ -188,6 +195,15 @@ assign o_rs1_data = flush_2_EX ? 32'd0 : i_rs1_data;
 assign o_rs2_data = flush_2_EX ? 32'd0 : i_rs2_data;
 
 
+FW_unit FW_UNIT(
+.instr_EX(o_instr_ID),
+.instr_MEM(o_instr_EX),
+.instr_WB(o_instr_MEM),
+.RegWen_MEM(o_RegWen_EX),
+.RegWen_WB(o_RegWen_MEM),
+.fw_select_A(fw_select_A),
+.fw_select_B(fw_select_B)
+    );
 
 
 
@@ -221,8 +237,8 @@ BRC BRANCH_CONTROL (
     .i_br_un(br_un),
     .o_pc_sel(PCsel)
 );
-
-assign data_A = Asel ? o_pc_ID : fw_data_A;
+assign LUI_type = o_instr_ID[6:0] == 7'b0110111;
+assign data_A = Asel ? o_pc_ID : (LUI_type) ? 32'd0 : fw_data_A;
 assign data_B = Bsel ? IMM     : fw_data_B;
 
 
@@ -238,7 +254,8 @@ LSU LOAD_STORE_UNIT (
     .i_clk(i_clk),
     .i_rst(i_reset),
     .i_lsu_wren(MemRW),
-    .funct3(o_instr_ID),
+    .funct3(o_instr_ID[14:12]),
+    .instruction_EX(o_instr_ID),
     .i_lsu_data(fw_data_B),
     .i_lsu_addr(i_ALU_EX),
     .i_io_sw(i_io_sw),
@@ -295,12 +312,30 @@ MEM_reg MEM (
 .rstn(i_reset),
 .stall_2_WB(stall_2_WB),
 .flush_2_WB(flush_2_WB),
+.i_RegWen_MEM(o_RegWen_EX),
 .i_wb_data_MEM(o_wb_data_MEM),
 .i_pc_MEM(o_pc_EX),
 .i_instr_MEM(o_instr_EX),
+.o_RegWen_MEM(o_RegWen_MEM),
 .o_pc_MEM(o_pc_MEM),
 .o_wb_data_MEM(wb_data_WB),
 .o_instr_MEM(o_instr_MEM)
     );
+
+hazard_detection HAZARD (
+    .PCsel(PCsel),
+    .flush_2_ID(flush_2_ID),
+    .stall_2_ID(stall_2_ID),
+    .flush_2_EX(flush_2_EX),
+    .stall_2_EX(stall_2_EX),
+    .flush_2_MEM(flush_2_MEM),
+    .stall_2_MEM(stall_2_MEM),
+    .flush_2_WB(flush_2_WB),
+    .stall_2_WB(stall_2_WB)
+    );
+
+
+
+
 
 endmodule
