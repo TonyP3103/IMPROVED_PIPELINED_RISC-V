@@ -18,7 +18,7 @@ end
 
 initial begin
   $shm_open("waves.shm");
-  $shm_probe("ASM" );
+  $shm_probe(tb, "ASM");
 end
 
   logic [31:0]  pc_debug;

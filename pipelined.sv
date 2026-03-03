@@ -67,7 +67,7 @@ logic [ 1:0] o_wb_select_EX;
 logic [31:0] data_A;
 logic [31:0] data_B;
 logic [31:0] LSU_DATA;
-logic        LUI_type;
+logic        LUI_flag;
 
 ///////////////MEMORY LOGIC////////////////
 logic       stall_2_MEM;
@@ -148,13 +148,15 @@ IMEM (
 regfile REGFILE (
     .i_clk(i_clk),
     .i_rst(i_reset),
+    .flush_2_EX(flush_2_EX),
+    .stall_2_EX(stall_2_EX),
     .i_rs1_addr(o_instr_IF[19:15]),
     .i_rs2_addr(o_instr_IF[24:20]),
     .i_rd_addr(o_instr_EX[11:7]),
     .i_rd_data(o_wb_data_MEM),
     .i_rd_wren(o_RegWen_EX),
-    .o_rs1_data(i_rs1_data),
-    .o_rs2_data(i_rs2_data)
+    .o_rs1_data(o_rs1_data),
+    .o_rs2_data(o_rs2_data)
 );
 
 
@@ -190,9 +192,6 @@ controller_unit CONTROLLER (
     .wb_select(i_wb_select_EX)
 );
 
-///////////////////MUX RS1_DATA ///////////////////////////////
-assign o_rs1_data = flush_2_EX ? 32'd0 : i_rs1_data;
-assign o_rs2_data = flush_2_EX ? 32'd0 : i_rs2_data;
 
 
 FW_unit FW_UNIT(
@@ -237,8 +236,8 @@ BRC BRANCH_CONTROL (
     .i_br_un(br_un),
     .o_pc_sel(PCsel)
 );
-assign LUI_type = o_instr_ID[6:0] == 7'b0110111;
-assign data_A = Asel ? o_pc_ID : (LUI_type) ? 32'd0 : fw_data_A;
+assign LUI_flag = o_instr_ID[6:0] == 7'b0110111;
+assign data_A = Asel ? o_pc_ID : (LUI_flag) ? 32'd0 : fw_data_A;
 assign data_B = Bsel ? IMM     : fw_data_B;
 
 
@@ -259,7 +258,7 @@ LSU LOAD_STORE_UNIT (
     .i_lsu_data(fw_data_B),
     .i_lsu_addr(i_ALU_EX),
     .i_io_sw(i_io_sw),
-    .i_io_btn(i_io_btn),
+    .i_io_btn(32'hAABBCCDD),
     .o_io_ledr(o_io_ledr),
     .o_io_ledg(o_io_ledg),
     .o_io_lcd(o_io_lcd),

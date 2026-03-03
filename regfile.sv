@@ -1,6 +1,8 @@
  module regfile
 (
 input logic i_clk, i_rst,
+input logic flush_2_EX,
+input logic stall_2_EX,
 input logic [4:0] i_rs1_addr, i_rs2_addr,
 
 input logic [4:0] i_rd_addr,
@@ -60,8 +62,15 @@ end
     end
 
     always_ff @(posedge i_clk or negedge i_rst) begin
-        o_rs1_data <= reg_array[i_rs1_addr];
-        o_rs2_data <= reg_array[i_rs2_addr];
+        if (!i_rst) begin
+            o_rs1_data <= 32'd0;
+            o_rs2_data <= 32'd0;
+        end else if (stall_2_EX) begin
+        o_rs1_data <= o_rs1_data ;
+        o_rs2_data <= o_rs2_data ;
+        end else begin
+        o_rs1_data <= flush_2_EX ? 32'd0 : reg_array[i_rs1_addr];
+        o_rs2_data <= flush_2_EX ? 32'd0 : reg_array[i_rs2_addr];
     end
-
+end
 endmodule

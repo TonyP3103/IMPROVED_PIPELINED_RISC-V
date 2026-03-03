@@ -120,7 +120,7 @@ module slave_DMEM (
 `ifdef NO_PLI
 		altsyncram_component.init_file = "/home/yellow/pnmuy/default_file/mem_64KB_zero.rif"
 `else
-		altsyncram_component.init_file = "/home/yellow/pnmuy/default_file/mem_64KB_zero.hex"
+		altsyncram_component.init_file = "/home/yellow/pnmuy/default_file/mem_64KB_zero.mif"
 `endif
 ,
 		altsyncram_component.intended_device_family = "Cyclone V",
