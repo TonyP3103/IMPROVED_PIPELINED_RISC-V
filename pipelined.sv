@@ -68,7 +68,7 @@ logic [31:0] data_A;
 logic [31:0] data_B;
 logic [31:0] LSU_DATA;
 logic        LUI_flag;
-
+logic        insn_vld_EX;
 ///////////////MEMORY LOGIC////////////////
 logic       stall_2_MEM;
 logic       flush_2_MEM;
@@ -78,13 +78,18 @@ logic [31:0] wb_select_MEM;
 logic [31:0] i_wb_data_MEM;
 logic [31:0] o_wb_data_MEM;
 logic        o_RegWen_MEM;
+logic        insn_vld_MEM;
+logic        mispred_MEM;
+logic        ctrl_MEM;
 ///////////////WRITEBACK LOGIC////////////////
 logic       stall_2_WB;
 logic       flush_2_WB;
 logic [31:0]  o_pc_MEM;
 logic [31:0]  o_instr_MEM;
 logic [31:0]  wb_data_WB;
-
+logic         insn_vld_WB;
+logic        mispred_WB;
+logic        ctrl_WB;
 
 
 //assign flush_2_ID = 1'b0;
@@ -122,7 +127,7 @@ end else begin
 end
 end
 
-imem #(.MEM_FILE ("/home/yellow/pnmuy/default_file/load_store.hex"))
+imem #(.MEM_FILE ("../02_test/isa_4b.hex"))
 IMEM (
     .address(PC[12:2]),
     .clock(i_clk),
@@ -286,7 +291,12 @@ EX_reg EX (
     .o_instr_EX(o_instr_EX),
     .o_RegWen_EX(o_RegWen_EX),
     .o_wb_select_EX(o_wb_select_EX),
-    .o_ALU_EX(o_ALU_EX)
+    .o_ALU_EX(o_ALU_EX),
+
+    .PCsel(PCsel),
+    .insn_vld_MEM(insn_vld_MEM),
+    .mispred_MEM(mispred_MEM),
+    .ctrl_MEM(ctrl_MEM)
     );
 ////////////////////////////////////////////
 
@@ -318,7 +328,14 @@ MEM_reg MEM (
 .o_RegWen_MEM(o_RegWen_MEM),
 .o_pc_MEM(o_pc_MEM),
 .o_wb_data_MEM(wb_data_WB),
-.o_instr_MEM(o_instr_MEM)
+.o_instr_MEM(o_instr_MEM),
+
+.insn_vld_MEM(insn_vld_MEM),
+.mispred_MEM(mispred_MEM),
+.ctrl_MEM(ctrl_MEM),
+.insn_vld_WB(insn_vld_WB),
+.mispred_WB(mispred_WB),
+.ctrl_WB(ctrl_WB)
     );
 
 hazard_detection HAZARD (
@@ -334,7 +351,9 @@ hazard_detection HAZARD (
     );
 
 
-
-
+assign o_insn_vld = insn_vld_WB;
+assign o_ctrl     = ctrl_WB;
+assign o_mispred  = mispred_WB;
+assign o_pc_debug = o_pc_MEM;
 
 endmodule

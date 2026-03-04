@@ -10,7 +10,15 @@ module MEM_reg (
     output logic        o_RegWen_MEM,
     output logic [31:0] o_pc_MEM,
     output logic [31:0] o_wb_data_MEM,
-    output logic [31:0] o_instr_MEM
+    output logic [31:0] o_instr_MEM,
+
+
+    input logic        insn_vld_MEM,
+    input logic        mispred_MEM,
+    input logic        ctrl_MEM,
+    output logic        insn_vld_WB,
+    output logic        mispred_WB,
+    output logic        ctrl_WB
     );
 
     always_ff @(posedge clk or negedge rstn) begin
@@ -29,6 +37,20 @@ end else begin
     o_pc_MEM      <= flush_2_WB ? 32'd0 : i_pc_MEM   ;
     o_instr_MEM   <= flush_2_WB ? 32'd0 : i_instr_MEM;
     o_wb_data_MEM <= flush_2_WB ? 32'd0 :  i_wb_data_MEM;
+end
+end
+
+
+
+always_ff @(posedge clk or negedge rstn) begin
+    if (!rstn) begin
+    insn_vld_WB    <= 1'b0;
+    mispred_WB     <= 1'b0;
+    ctrl_WB        <= 1'b0;
+end else begin
+    insn_vld_WB    <= insn_vld_MEM;      //When PCsel = 1 Flush activate
+    mispred_WB     <= mispred_MEM ;
+    ctrl_WB        <= ctrl_MEM    ;
 end
 end
 endmodule
