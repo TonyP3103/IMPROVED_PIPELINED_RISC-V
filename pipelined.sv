@@ -41,7 +41,7 @@ logic [31:0] i_rs1_data;
 logic [31:0] i_rs2_data;
 logic [31:0] o_rs1_data;
 logic [31:0] o_rs2_data;
-
+logic        insn_vld_ID;
 
 ///////////////EXECUTE LOGIC////////////////
 logic flush_2_EX;
@@ -144,7 +144,8 @@ IMEM (
         .i_pc_IF(i_pc_IF),
         .i_instr_IF(i_instr_IF),
         .o_pc_IF(o_pc_IF),
-        .o_instr_IF(o_instr_IF)
+        .o_instr_IF(o_instr_IF),
+        .insn_vld_ID(insn_vld_ID)
     );
 
 
@@ -173,7 +174,10 @@ ID_reg ID (
     .i_pc_ID(o_pc_IF),
     .i_instr_ID(o_instr_IF),
     .o_pc_ID(o_pc_ID),
-    .o_instr_ID(o_instr_ID)
+    .o_instr_ID(o_instr_ID),
+
+    .insn_vld_ID(insn_vld_ID),
+    .insn_vld_EX(insn_vld_EX)
     );
 
 ////////////////////////////////////////////////////////////
@@ -294,6 +298,7 @@ EX_reg EX (
     .o_ALU_EX(o_ALU_EX),
 
     .PCsel(PCsel),
+    .insn_vld_EX (insn_vld_EX),
     .insn_vld_MEM(insn_vld_MEM),
     .mispred_MEM(mispred_MEM),
     .ctrl_MEM(ctrl_MEM)

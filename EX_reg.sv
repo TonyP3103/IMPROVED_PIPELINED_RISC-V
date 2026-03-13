@@ -15,6 +15,7 @@ module EX_reg (
     output logic [31:0] o_ALU_EX,
 
     input logic        PCsel,
+    input logic         insn_vld_EX,
     output logic        insn_vld_MEM,
     output logic        mispred_MEM,
     output logic        ctrl_MEM
@@ -27,24 +28,26 @@ module EX_reg (
     o_RegWen_EX     <=  1'd0;
     o_wb_select_EX  <=  2'd0;
     o_ALU_EX        <= 32'd0;
+    insn_vld_MEM    <= 1'b0;
 end else if (stall_2_MEM) begin
     o_pc_EX         <= o_pc_EX   ;
     o_instr_EX      <= o_instr_EX;
     o_RegWen_EX     <= o_RegWen_EX   ;
     o_wb_select_EX  <= o_wb_select_EX;
     o_ALU_EX        <= o_ALU_EX      ;
+    insn_vld_MEM    <= insn_vld_MEM;
 end else begin
     o_pc_EX         <= flush_2_MEM ? 32'd0 : i_pc_EX   ;
     o_instr_EX      <= flush_2_MEM ? 32'd0 : i_instr_EX;
     o_RegWen_EX     <= flush_2_MEM ?  1'd0 : i_RegWen_EX   ;
     o_wb_select_EX  <= flush_2_MEM ?  2'd0 : i_wb_select_EX;
     o_ALU_EX        <= flush_2_MEM ? 32'd0 : i_ALU_EX      ;
+    insn_vld_MEM    <= flush_2_MEM ? 1'b0  : insn_vld_EX;
 end
 end
 
 
 always_comb begin
-    insn_vld_MEM    = !PCsel;      //When PCsel = 1 Flush activate
     mispred_MEM     = PCsel;
     ctrl_MEM        = PCsel;
 end
